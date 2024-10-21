@@ -7,17 +7,20 @@ magenta = "\033[95m"
 ansi_reset = "\033[0m"
 
 
-def check_color(string):
-    color_codes = {
-        "green": "\033[32m",
-        "yellow": "\033[33m"
-    }
-
-    for color, code in color_codes.items():
-        if code in string and "king" in string:
-            return color
-
+def check_color(cell, i, j):
+    if cell.startswith(yellow + "king"):
+        return "yellow"
+    if cell.startswith(green + "king"):
+        return "green"
     return None
+"""
+    if cell == yellow + "king" + to_superscript(i) + to_superscript(j) + ansi_reset:
+        return "yellow"
+    if cell == green + "king" + to_superscript(i) + to_superscript(j) + ansi_reset:
+        return "green"
+    return None
+    """
+
 
 vleguvaVoStartswith = False
 
@@ -347,7 +350,7 @@ class GameCheckers:
 
         for i in range(8):
             for j in range(8):
-                if check_color(tabla[i][j]) == "green": #tabla[i][j].startswith(green + 'k'):   #Ako king e so zelena boja togash toa e king na #men a, dokolku e so zolta e na computer
+                if check_color(tabla[i][j], i, j) == "green": #tabla[i][j].startswith(green + 'k'):   #Ako king e so zelena boja togash toa e king na #men a, dokolku e so zolta e na computer
                     vleguvaVoStartswith = True
                     if GameCheckers.checkPlayerMoves(tabla, i, j, i-1, j-1):  #edno pole napred levo
                         possibleMoves.append([i, j, i-1,j-1, 100, 100, 100, 100])
@@ -402,7 +405,7 @@ class GameCheckers:
         #ako se raboti za zolt king e sosema istata logika kako i za zelen king
         for i in range(8):
             for j in range(8):
-                if check_color(tabla[i][j]) == "yellow": #tabla[i][j].startswith(yellow + "k"):
+                if check_color(tabla[i][j], i, j) == "yellow": #tabla[i][j].startswith(yellow + "k"):
                     vleguvaVoStartswith = True
                     if GameCheckers.checkComputerMoves(tabla, i, j, i - 1, j - 1):  # edno pole napred levo
                         possibleMoves.append([i, j, i - 1, j - 1, 100, 100, 100, 100])
@@ -536,12 +539,12 @@ class GameCheckers:
             for j in range(8):
                 if clean_cell_value(self.matrica[i][j])[0] == "#" and clean_cell_value(self.matrica[i][j])[1] == 'm':
                     self.player_pieces+=1
-                if check_color(self.matrica[i][j]) == "green": #self.matrica[i][j].startswith(green + 'k'):
+                if check_color(self.matrica[i][j], i, j) == "green": #self.matrica[i][j].startswith(green + 'k'):
                     vleguvaVoStartswith = True
                     self.player_pieces+=1
                 if clean_cell_value(self.matrica[i][j])[0] == "c" and clean_cell_value(self.matrica[i][j])[1] == "o":  #proveruvame za sekoj slucaj po dva karakteri
                     self.compPieces+=1
-                if check_color(self.matrica[i][j]) == "yellow": #self.matrica[i][j].startswith(yellow + 'k'):
+                if check_color(self.matrica[i][j], i, j) == "yellow": #self.matrica[i][j].startswith(yellow + 'k'):
                     vleguvaVoStartswith = True
                     self.compPieces+=1
         self.computerScore = 12 - self.player_pieces
@@ -555,7 +558,7 @@ class GameCheckers:
     @staticmethod
     def MakeAMoveForMen(board, old_I, old_J, new_I, new_J, opponent1_I, opponent1_J, opponent2_I, opponent2_J):
         string = "king"
-        if not check_color(board[old_I][old_J]) == "green": #board[old_I][old_J].startswith(green + "k"):    #dokolku seuste nema stanato king
+        if not check_color(board[old_I][old_J], old_I, old_J) == "green": #board[old_I][old_J].startswith(green + "k"):    #dokolku seuste nema stanato king
             vleguvaVoStartswith = True
             if new_I != 0:  # queenRow = 0 za #men
                 string = "#men"
@@ -576,7 +579,7 @@ class GameCheckers:
     @staticmethod
     def MakeAMoveForComputer(board, old_I, old_J, new_I, new_J, opponent1_I, opponent1_J, opponent2_I, opponent2_J):
         string = "king"
-        if not check_color(board[old_I][old_J]) == "yellow": #board[old_I][old_J].startswith(yellow + "k"):
+        if not check_color(board[old_I][old_J], old_I, old_J) == "yellow": #board[old_I][old_J].startswith(yellow + "k"):
             vleguvaVoStartswith = True
             if new_I != 7:   #sedmata redica e king redica za comp
                 string = "comp"
@@ -604,7 +607,7 @@ class GameCheckers:
 
         for i in range(len(first_computer_moves)):
             child = first_computer_moves[i]
-            value = GameCheckers.minimax(child.get_board(), 0, -math.inf, math.inf, False)
+            value = GameCheckers.minimax(child.get_board(), 1, -math.inf, math.inf, False)
             dict[value] = child
 
         if len(dict.keys()) == 0:
@@ -619,7 +622,7 @@ class GameCheckers:
     @staticmethod
     def minimax(board, depth, alpha, beta, maximizing_player):
         if depth == 0:
-            print("vleguvaVoStartswith = " , vleguvaVoStartswith)
+            #print("vleguvaVoStartswith = " , vleguvaVoStartswith)
             return GameCheckers.calculate_heuristics(board)
         current_state = NewGameState(deepcopy(board))
         if maximizing_player is True:
@@ -666,32 +669,32 @@ class GameCheckers:
                 if isTheSame(board[i][j], "comp", i, j) or board[i][j].startswith(yellow + "k"):
                     mine += 1
                     if isTheSame(board[i][j], "comp", i, j):
-                        result += 5
+                        result -= 5
                     if board[i][j].startswith(yellow + "k"):
-                        result += 10
+                        result -= 10
                     if i == 0 or j == 0 or i == 7 or j == 7:
-                        result += 7
+                        result -= 7
                     if i + 1 > 7 or j - 1 < 0 or i - 1 < 0 or j + 1 > 7:
                         continue
                     if (isTheSame(board[i + 1][j - 1], "#men", i+1, j-1) or board[i+1][j-1].startswith(green + "k")) and isTheSame(board[i - 1][
                         j + 1], "----", i-1, j+1):
-                        result -= 3
+                        result += 3
                     if (isTheSame(board[i + 1][j + 1], "#men", i + 1, j + 1) or board[i + 1][j + 1].startswith(
                             green + "k")) and isTheSame(board[i - 1][j - 1], "----", i - 1, j - 1):
-                        result -= 3
+                        result += 3
                     if board[i - 1][j - 1].startswith(green + "k") and  isTheSame(board[i + 1][j + 1], "----", i+1, j+1): #board[i + 1][j + 1] == "---":
-                        result -= 3
+                        result += 3
 
                     if board[i - 1][j + 1].startswith(green + "k") and isTheSame(board[i + 1][j - 1], "----", i+1, j-1):
-                        result -= 3
+                        result += 3
                     if i + 2 > 7 or i - 2 < 0 or j-2 < 0:
                         continue
                     if (isTheSame(board[i + 1][j - 1], "#men", i+1, j-1) or board[i + 1][j - 1].startswith(green + "k")) and isTheSame(board[i + 2][j - 2], "----", i+2, j-2):
-                        result += 6
+                        result -= 6
                     if i + 2 > 7 or j + 2 > 7:
                         continue
                     if (isTheSame(board[i + 1][j + 1], "#men", i+1, j+1) or board[i + 1][j + 1].startswith(green + "k")) and isTheSame(board[i + 2][j + 2],"----", i+2, j+2):
-                        result += 6
+                        result -= 6
 
                 elif isTheSame(board[i][j], "#men", i, j) or board[i][j].startswith(green + "k"):
                     opp += 1
