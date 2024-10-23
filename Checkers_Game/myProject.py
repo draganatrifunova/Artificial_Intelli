@@ -1,5 +1,6 @@
 import math
 from copy import deepcopy
+
 yellow = "\033[93m"
 red = "\033[31m"
 green = "\033[92m"
@@ -13,6 +14,8 @@ def check_color(cell, i, j):
     if cell.startswith(green + "king"):
         return "green"
     return None
+
+
 """
     if cell == yellow + "king" + to_superscript(i) + to_superscript(j) + ansi_reset:
         return "yellow"
@@ -22,7 +25,6 @@ def check_color(cell, i, j):
     """
 
 
-vleguvaVoStartswith = False
 
 superscript = {
     '0': '⁰', '1': '¹', '2': '²', '3': '³', '4': '⁴',
@@ -41,25 +43,24 @@ def clean_cell_value(cell):
 class NewGameState:
     def __init__(self, board, move=None, parent=None, value=None):
         self.board = board
-        self.move = move   #[oldI oldJ newI newJ]
+        self.move = move  # [oldI oldJ newI newJ]
         self.parent = parent
         self.value = value
 
-
-    #vo ovaa igra minimizinj_player e computer a, maximizing player e #men
-    #zosto e toa taka?
-    #zatoa sto prviot poteg go pravi #men, vtoriot comp, tretiot #men, cetvrtiot comp ....
-    #covekot se obiduva da ja maksimizira svojata prednost so izbor na najdobriot poteg koj ke mu donese najvisok rezultat
-    #kompjuterot se obiduva da ja minimizira moznata prednost ili rezultat na covekot, kompjuterot samo saka da ja minimizira svojata steta
-    #dokolku prviot poteg go pravese kompjuterot togash toj ke bese maksimiziracki igrac a, covekot minimiziracki
-    #bez razlika koj e maksimiziracki a, koj minimiziracki igrac i dvajcata se obiduvaat da go dadat najdobroto od sebe, DA POBEDAT
+    # vo ovaa igra minimizinj_player e computer a, maximizing player e #men
+    # zosto e toa taka?
+    # zatoa sto prviot poteg go pravi #men, vtoriot comp, tretiot #men, cetvrtiot comp ....
+    # covekot se obiduva da ja maksimizira svojata prednost so izbor na najdobriot poteg koj ke mu donese najvisok rezultat
+    # kompjuterot se obiduva da ja minimizira moznata prednost ili rezultat na covekot, kompjuterot samo saka da ja minimizira svojata steta
+    # dokolku prviot poteg go pravese kompjuterot togash toj ke bese maksimiziracki igrac a, covekot minimiziracki
+    # bez razlika koj e maksimiziracki a, koj minimiziracki igrac i dvajcata se obiduvaat da go dadat najdobroto od sebe, DA POBEDAT
     def get_children(self, minimizing_player):
         current_state = deepcopy(self.board)
         children_states = []
         available_moves = []
-        if minimizing_player is True:   #ako kompjuterot e na red
+        if minimizing_player is True:  # ako kompjuterot e na red
             available_moves = GameCheckers.getCompAvailableMoves(current_state)
-        else:  #ako #men e na red
+        else:  # ako #men e na red
             available_moves = GameCheckers.getMensAvailableMoves(current_state)
 
         # possibleMoves.append([i, j, i - 1, j - 1, 100, 100, 100, 100])
@@ -108,35 +109,31 @@ class GameCheckers:
         self.player_pieces = 12
         self.makeAInitialMatrix()
 
-
     def makeAInitialMatrix(self):
         for i in range(8):
             for j in range(8):
-                self.matrica[i][j] = "----" +  to_superscript(i) + to_superscript(j)
+                self.matrica[i][j] = "----" + to_superscript(i) + to_superscript(j)
 
-        #vo prvite tri reda e comp
+        # vo prvite tri reda e comp
         for i in range(3):
             for j in range(8):
                 superscript_indices = to_superscript(i) + to_superscript(j)
 
-                if i==0 and j%2!=0 or i==2 and j%2!=0:
+                if i == 0 and j % 2 != 0 or i == 2 and j % 2 != 0:
                     self.matrica[i][j] = yellow + "comp" + superscript_indices + ansi_reset
 
-                if i==1 and j%2==0:
-                    self.matrica[i][j] = yellow + "comp"+ superscript_indices + ansi_reset
+                if i == 1 and j % 2 == 0:
+                    self.matrica[i][j] = yellow + "comp" + superscript_indices + ansi_reset
 
-        #vo poslednite tri reda e #men
-        for i in range(5,8):
+        # vo poslednite tri reda e #men
+        for i in range(5, 8):
             for j in range(8):
                 superscript_indices = to_superscript(i) + to_superscript(j)
 
-                if i==5 and j%2==0 or i==7 and j%2==0:
+                if i == 5 and j % 2 == 0 or i == 7 and j % 2 == 0:
                     self.matrica[i][j] = green + "#men" + superscript_indices + ansi_reset
-                if i==6 and j%2!=0:
+                if i == 6 and j % 2 != 0:
                     self.matrica[i][j] = green + "#men" + superscript_indices + ansi_reset
-
-
-
 
     def printAMatrix(self):
         print("       0       1       2       3       4       5       6       7")
@@ -168,9 +165,10 @@ class GameCheckers:
         old_cell = clean_cell_value(tablaZaIgranje[oldI][oldJ])
         if new_cell != "----" + to_superscript(newI) + to_superscript(newJ):
             return False
-        if old_cell != "#men" + to_superscript(oldI) + to_superscript(oldJ):
-            return False
-        return True
+        if (old_cell == "#men" + to_superscript(oldI) + to_superscript(oldJ)) or (
+                old_cell == "king" + to_superscript(oldI) + to_superscript(oldJ)):
+            return True
+        return False
 
     @staticmethod
     def checkComputerMoves(tablaZaIgranje, oldI, oldJ, newI, newJ):
@@ -186,9 +184,10 @@ class GameCheckers:
         old_cell = clean_cell_value(tablaZaIgranje[oldI][oldJ])
         if new_cell != "----" + to_superscript(newI) + to_superscript(newJ):
             return False
-        if old_cell != "comp" + to_superscript(oldI) + to_superscript(oldJ):
-            return False
-        return True
+        if (old_cell == "comp" + to_superscript(oldI) + to_superscript(oldJ)) or (
+                old_cell == "king" + to_superscript(oldI) + to_superscript(oldJ)):
+            return True
+        return False
 
     @staticmethod
     def checkPlayerJump(tablaZaIgranje, oldI, oldJ, newI, newJ, opponentX, opponentY):
@@ -200,10 +199,12 @@ class GameCheckers:
 
         opponent_cell = clean_cell_value(tablaZaIgranje[opponentX][opponentY])
 
-        if opponent_cell != "comp" + to_superscript(opponentX) + to_superscript(opponentY):
-            return False
+        if opponent_cell == "comp" + to_superscript(opponentX) + to_superscript(opponentY):
+            return True
+        if check_color(tablaZaIgranje[opponentX][opponentY], opponentX, opponentY) == "yellow":
+            return True
 
-        return True
+        return False
 
     @staticmethod
     def checkComputerJump(tablaZaIgranje, oldI, oldJ, newI, newJ, opponentX, opponentY):
@@ -215,62 +216,80 @@ class GameCheckers:
 
         opponent_cell = clean_cell_value(tablaZaIgranje[opponentX][opponentY])
 
-        if opponent_cell != "#men" + to_superscript(opponentX) + to_superscript(opponentY):
-            return False
-
-        return True
+        if opponent_cell == "#men" + to_superscript(opponentX) + to_superscript(opponentY):
+            return True
+        if check_color(tablaZaIgranje[opponentX][opponentY], opponentX, opponentY) == "green":   #skoka kral
+            return True
+        return False
 
     @staticmethod
-    def checkPlayerDoubleJump(tablaZaIgranje, oldI, oldJ, newI, newJ, opponent_One_X, opponent_One_Y, opponent_Two_X, opponent_Two_Y, posrednikX, posrednikY):
+    def checkPlayerDoubleJump(tablaZaIgranje, oldI, oldJ, newI, newJ, opponent_One_X, opponent_One_Y, opponent_Two_X,
+                              opponent_Two_Y, posrednikX, posrednikY):
         def clean_cell_value(cell):
             return cell.replace(ansi_reset, '').replace(green, '').replace(yellow, '')
 
         if GameCheckers.checkPlayerMoves(tablaZaIgranje, oldI, oldJ, newI, newJ) == False:
             return False
 
+        protivnik1 = False
+        protivnik2 = False
         opp1 = clean_cell_value(tablaZaIgranje[opponent_One_X][opponent_One_Y])
         opp2 = clean_cell_value(tablaZaIgranje[opponent_Two_X][opponent_Two_Y])
         posred = clean_cell_value(tablaZaIgranje[posrednikX][posrednikY])
-
-        if opp1 != "comp" + to_superscript(opponent_One_X) + to_superscript(opponent_One_Y):
+        if posred != "----" + to_superscript(posrednikX) + to_superscript(posrednikY):     # posrednik poleto mora da e prazno za da ima dvojno skokanje
             return False
-        if opp2 != "comp" + to_superscript(opponent_Two_X) + to_superscript(opponent_Two_Y):
-            return False
-        # posrednik poleto mora da e prazno za da ima dvojno skokanje
-        if posred != "----" + to_superscript(posrednikX) + to_superscript(posrednikY):
-            return False
-        return True
+        if opp1 == "comp" + to_superscript(opponent_One_X) + to_superscript(opponent_One_Y):
+            protivnik1 = True
+        if opp2 == "comp" + to_superscript(opponent_Two_X) + to_superscript(opponent_Two_Y):
+            protivnik2 = True
+        if check_color(tablaZaIgranje[opponent_One_X][opponent_One_Y], opponent_One_X, opponent_One_Y) == "yellow":
+            protivnik1 = True
+        if check_color(tablaZaIgranje[opponent_Two_X][opponent_Two_Y], opponent_Two_X, opponent_Two_Y) == "yellow":
+            protivnik2 = True
+        if protivnik1 == True and protivnik2 == True:
+            return True
+        return False
 
     @staticmethod
-    def checkComputerDoubleJump(tablaZaIgranje, oldI, oldJ, newI, newJ, opponent_One_X, opponent_One_Y,opponent_Two_X,opponent_Two_Y, posrednikX, posrednikY):
+    def checkComputerDoubleJump(tablaZaIgranje, oldI, oldJ, newI, newJ, opponent_One_X, opponent_One_Y, opponent_Two_X,
+                                opponent_Two_Y, posrednikX, posrednikY):
         def clean_cell_value(cell):
             return cell.replace(ansi_reset, '').replace(green, '').replace(yellow, '')
 
         if GameCheckers.checkComputerMoves(tablaZaIgranje, oldI, oldJ, newI, newJ) == False:
             return False
 
+        protivnik1 = False
+        protivnik2 = False
         opp1 = clean_cell_value(tablaZaIgranje[opponent_One_X][opponent_One_Y])
         opp2 = clean_cell_value(tablaZaIgranje[opponent_Two_X][opponent_Two_Y])
         posred = clean_cell_value(tablaZaIgranje[posrednikX][posrednikY])
 
-        if opp1 != "#men" + to_superscript(opponent_One_X) + to_superscript(opponent_One_Y):
-            return False
-        if opp2 != "#men" + to_superscript(opponent_Two_X) + to_superscript(opponent_Two_Y):
-            return False
-        # posrednik poleto mora da e prazno za da ima dvojno skokanje
         if posred != "----" + to_superscript(posrednikX) + to_superscript(posrednikY):
             return False
-        return True
+        if opp1 == "#men" + to_superscript(opponent_One_X) + to_superscript(opponent_One_Y):
+            protivnik1 = True
+        if opp2 == "#men" + to_superscript(opponent_Two_X) + to_superscript(opponent_Two_Y):
+            protivnik2 = True
+        # posrednik poleto mora da e prazno za da ima dvojno skokanje
+        if check_color(tablaZaIgranje[opponent_One_X][opponent_One_Y], opponent_One_X, opponent_One_Y) == "green":
+            protivnik1 = True
+        if check_color(tablaZaIgranje[opponent_Two_X][opponent_Two_Y], opponent_Two_X, opponent_Two_Y) == "green":
+            protivnik2 = True
+        if protivnik1 == True and protivnik2 == True:
+            return True
+        return False
 
     """
         ZAVRSUVA OBLAST NA FUNKCII ZA PROVERKA NA VALIDNOST NA PLAYER I COMPUTER
     """
 
-
     def startGame(self):
         print(magenta + " *** DOBREDOJDOVTE VO IGRATA DAMA ***" + ansi_reset)
-        print("Ova e implementacijata na studentot Dragana Trifunova [223044] za igrata dama i ovde e prikazana amerikanskata verzija od igrata")
-        print("Vo Amerikanskata verzija postojat 12 pioncinja na sekoi od protivnicite i vo sekoi red ima po osum kelii")
+        print(
+            "Ova e implementacijata na studentot Dragana Trifunova [223044] za igrata dama i ovde e prikazana amerikanskata verzija od igrata")
+        print(
+            "Vo Amerikanskata verzija postojat 12 pioncinja na sekoi od protivnicite i vo sekoi red ima po osum kelii")
         print()
         print("PRAVILA NA IGRANJE")
         print("1. Vie igrate so pionceto oznaceno kako '#men'")
@@ -299,9 +318,6 @@ class GameCheckers:
                 exit()
             self.isPlayerTurn = not self.isPlayerTurn
 
-
-
-
     @staticmethod
     def getMensAvailableMoves(tabla):
         """
@@ -313,25 +329,29 @@ class GameCheckers:
             - da skokne dve polinja dijagonalno na levo ili desno dokolku i na dvete polinja ima protivnik
         """
         possibleMoves = []
-        #lista koja sodrzi old_I old_J new_I new_J opponent1_i opponent1_j opponent2_i opponent2_j
-        #DOKOLKU '#men' se pomestuva samo na levo ili desno BEZ SKOKANJE togash    opponent1_i=100    opponent1_j=100
+        # lista koja sodrzi old_I old_J new_I new_J opponent1_i opponent1_j opponent2_i opponent2_j
+        # DOKOLKU '#men' se pomestuva samo na levo ili desno BEZ SKOKANJE togash    opponent1_i=100    opponent1_j=100
 
         for i in range(8):
             for j in range(8):
                 cell = tabla[i][j].replace(ansi_reset, '').replace(green, '').replace(yellow, '')[:4]
                 if cell == "#men":
-                    if GameCheckers.checkPlayerMoves(tabla, i, j, i-1, j-1):  #edno pole napred levo
-                        possibleMoves.append([i, j, i-1,j-1, 100, 100, 100, 100])    # 4 * 100 bideiki nema opponents
-                    if GameCheckers.checkPlayerMoves(tabla, i, j, i-1, j+1):   #edno pole napred desno
-                        possibleMoves.append([i, j, i-1, j+1, 100, 100, 100, 100])
-                    if GameCheckers.checkPlayerJump(tabla, i, j, i-2, j-2, i-1, j-1):     #skoka 1 pole na levo
-                        possibleMoves.append([i, j, i-2, j-2, i-1, j-1, 100, 100])      # 2 * 100 bideiki prviot opponent go ima a, vtoriot go nema
-                    if GameCheckers.checkPlayerJump(tabla, i, j, i-2, j+2, i-1, j+1):       #skoka edno pole na desno
-                        possibleMoves.append([i, j, i-2, j+2, i-1, j+1, 100, 100])
-                    if GameCheckers.checkPlayerDoubleJump(tabla, i, j, i-4, j+4, i-1, j+1, i-3, j+3, i-2, j+2):      #skoka dve polinja na levo   6,1         5,2    3,4
-                        possibleMoves.append([i, j, i-4, j+4, i-1, j+1, i-3, j+3])
-                    if GameCheckers.checkPlayerDoubleJump(tabla, i, j, i-4, j-4, i-1, j-1, i-3,j-3, i-2, j-2):   #skoka dve polinja na desno   6,7      5,6   3,4
-                        possibleMoves.append([i, j, i-4, j-4, i-1, j-1, i-3,j-3])
+                    if GameCheckers.checkPlayerMoves(tabla, i, j, i - 1, j - 1):  # edno pole napred levo
+                        possibleMoves.append([i, j, i - 1, j - 1, 100, 100, 100, 100])  # 4 * 100 bideiki nema opponents
+                    if GameCheckers.checkPlayerMoves(tabla, i, j, i - 1, j + 1):  # edno pole napred desno
+                        possibleMoves.append([i, j, i - 1, j + 1, 100, 100, 100, 100])
+                    if GameCheckers.checkPlayerJump(tabla, i, j, i - 2, j - 2, i - 1, j - 1):  # skoka 1 pole na levo
+                        possibleMoves.append([i, j, i - 2, j - 2, i - 1, j - 1, 100,
+                                              100])  # 2 * 100 bideiki prviot opponent go ima a, vtoriot go nema
+                    if GameCheckers.checkPlayerJump(tabla, i, j, i - 2, j + 2, i - 1,
+                                                    j + 1):  # skoka edno pole na desno
+                        possibleMoves.append([i, j, i - 2, j + 2, i - 1, j + 1, 100, 100])
+                    if GameCheckers.checkPlayerDoubleJump(tabla, i, j, i - 4, j + 4, i - 1, j + 1, i - 3, j + 3, i - 2,
+                                                          j + 2):  # skoka dve polinja na levo   6,1         5,2    3,4
+                        possibleMoves.append([i, j, i - 4, j + 4, i - 1, j + 1, i - 3, j + 3])
+                    if GameCheckers.checkPlayerDoubleJump(tabla, i, j, i - 4, j - 4, i - 1, j - 1, i - 3, j - 3, i - 2,
+                                                          j - 2):  # skoka dve polinja na desno   6,7      5,6   3,4
+                        possibleMoves.append([i, j, i - 4, j - 4, i - 1, j - 1, i - 3, j - 3])
 
         """
         Za king 
@@ -350,32 +370,41 @@ class GameCheckers:
 
         for i in range(8):
             for j in range(8):
-                if check_color(tabla[i][j], i, j) == "green": #tabla[i][j].startswith(green + 'k'):   #Ako king e so zelena boja togash toa e king na #men a, dokolku e so zolta e na computer
-                    vleguvaVoStartswith = True
-                    if GameCheckers.checkPlayerMoves(tabla, i, j, i-1, j-1):  #edno pole napred levo
-                        possibleMoves.append([i, j, i-1,j-1, 100, 100, 100, 100])
-                    if GameCheckers.checkPlayerMoves(tabla, i, j, i+1, j-1):    #edno pole nazad levo
-                        possibleMoves.append([i, j, i+1, j-1, 100, 100, 100, 100])
-                    if GameCheckers.checkPlayerMoves(tabla, i, j, i-1, j+1):   #edno pole napred desno
-                        possibleMoves.append([i, j, i-1, j+1, 100, 100, 100, 100])
-                    if GameCheckers.checkPlayerMoves(tabla, i, j, i+1, j+1): #edno pole nazad desno
-                        possibleMoves.append([i, j, i+1, j+1, 100, 100, 100, 100])
-                    if GameCheckers.checkPlayerJump(tabla, i, j, i-2, j-2, i-1, j-1):     #skoka 1 pole na levo napred
-                        possibleMoves.append([i, j, i-2, j-2, i-1, j-1, 100, 100])
-                    if GameCheckers.checkPlayerJump(tabla, i, j, i+2, j-2, i+1, j-1):   #skoka edno pole levo nazad
-                        possibleMoves.append([i, j,  i+2, j-2, i+1, j-1, 100, 100])
-                    if GameCheckers.checkPlayerJump(tabla, i, j, i-2, j+2, i-1, j+1):       #skoka edno pole na desno napred
-                        possibleMoves.append([i, j, i-2, j+2, i-1, j+1, 100, 100])
-                    if GameCheckers.checkPlayerJump(tabla, i, j, i+2, j+2, i+1, j+1):    #skoka edno pole na desno nazad
-                        possibleMoves.append([i, j, i+2, j+2, i+1, j+1, 100, 100])
-                    if GameCheckers.checkPlayerDoubleJump(tabla, i, j, i-4, j+4, i-1, j+1, i-3, j+3, i-2, j+2):      #skoka dve polinja na levo napred
-                        possibleMoves.append([i, j, i-4, j+4, i-1, j+1, i-3, j+3])
-                    if GameCheckers.checkPlayerDoubleJump(tabla, i, j, i+4, j-4, i+1, j-1, i+3, j-3, i+2, j-2):    #skoka dve polinja na levo nazad
-                        possibleMoves.append([i, j, i+4, j-4, i+1, j-1, i+3, j-3])
-                    if GameCheckers.checkPlayerDoubleJump(tabla, i, j, i-4, j-4, i-1, j-1, i-3,j-3, i-2, j-2):   #skoka dve polinja na desno napred
-                        possibleMoves.append([i, j, i-4, j-4, i-1, j-1, i-3,j-3])
-                    if GameCheckers.checkPlayerDoubleJump(tabla, i, j, i+4, j+4, i+1, j+1, i+3, j+3, i+2, j+2):   #skoka dve polinja na desno nazad
-                        possibleMoves.append([i, j, i+4, j+4, i+1, j+1, i+3, j+3])
+                if check_color(tabla[i][j], i,
+                               j) == "green":  # tabla[i][j].startswith(green + 'k'):   #Ako king e so zelena boja togash toa e king na #men a, dokolku e so zolta e na computer
+
+                    if GameCheckers.checkPlayerMoves(tabla, i, j, i - 1, j - 1):  # edno pole napred levo
+                        possibleMoves.append([i, j, i - 1, j - 1, 100, 100, 100, 100])
+                    if GameCheckers.checkPlayerMoves(tabla, i, j, i + 1, j - 1):  # edno pole nazad levo
+                        possibleMoves.append([i, j, i + 1, j - 1, 100, 100, 100, 100])
+                    if GameCheckers.checkPlayerMoves(tabla, i, j, i - 1, j + 1):  # edno pole napred desno
+                        possibleMoves.append([i, j, i - 1, j + 1, 100, 100, 100, 100])
+                    if GameCheckers.checkPlayerMoves(tabla, i, j, i + 1, j + 1):  # edno pole nazad desno
+                        possibleMoves.append([i, j, i + 1, j + 1, 100, 100, 100, 100])
+                    if GameCheckers.checkPlayerJump(tabla, i, j, i - 2, j - 2, i - 1,
+                                                    j - 1):  # skoka 1 pole na levo napred
+                        possibleMoves.append([i, j, i - 2, j - 2, i - 1, j - 1, 100, 100])
+                    if GameCheckers.checkPlayerJump(tabla, i, j, i + 2, j - 2, i + 1,
+                                                    j - 1):  # skoka edno pole levo nazad
+                        possibleMoves.append([i, j, i + 2, j - 2, i + 1, j - 1, 100, 100])
+                    if GameCheckers.checkPlayerJump(tabla, i, j, i - 2, j + 2, i - 1,
+                                                    j + 1):  # skoka edno pole na desno napred
+                        possibleMoves.append([i, j, i - 2, j + 2, i - 1, j + 1, 100, 100])
+                    if GameCheckers.checkPlayerJump(tabla, i, j, i + 2, j + 2, i + 1,
+                                                    j + 1):  # skoka edno pole na desno nazad
+                        possibleMoves.append([i, j, i + 2, j + 2, i + 1, j + 1, 100, 100])
+                    if GameCheckers.checkPlayerDoubleJump(tabla, i, j, i - 4, j + 4, i - 1, j + 1, i - 3, j + 3, i - 2,
+                                                          j + 2):  # skoka dve polinja na levo napred
+                        possibleMoves.append([i, j, i - 4, j + 4, i - 1, j + 1, i - 3, j + 3])
+                    if GameCheckers.checkPlayerDoubleJump(tabla, i, j, i + 4, j - 4, i + 1, j - 1, i + 3, j - 3, i + 2,
+                                                          j - 2):  # skoka dve polinja na levo nazad
+                        possibleMoves.append([i, j, i + 4, j - 4, i + 1, j - 1, i + 3, j - 3])
+                    if GameCheckers.checkPlayerDoubleJump(tabla, i, j, i - 4, j - 4, i - 1, j - 1, i - 3, j - 3, i - 2,
+                                                          j - 2):  # skoka dve polinja na desno napred
+                        possibleMoves.append([i, j, i - 4, j - 4, i - 1, j - 1, i - 3, j - 3])
+                    if GameCheckers.checkPlayerDoubleJump(tabla, i, j, i + 4, j + 4, i + 1, j + 1, i + 3, j + 3, i + 2,
+                                                          j + 2):  # skoka dve polinja na desno nazad
+                        possibleMoves.append([i, j, i + 4, j + 4, i + 1, j + 1, i + 3, j + 3])
 
         return possibleMoves
 
@@ -383,30 +412,34 @@ class GameCheckers:
     def getCompAvailableMoves(tabla):
         possibleMoves = []
 
-        #ako se raboti za obicno pionce [levo i desno sega se obratno]
+        # ako se raboti za obicno pionce [levo i desno sega se obratno]
 
         for i in range(8):
             for j in range(8):
                 cell = tabla[i][j].replace(ansi_reset, '').replace(green, '').replace(yellow, '')[:4]
                 if cell == "comp":
-                    if GameCheckers.checkComputerMoves(tabla, i, j, i+1, j+1):   # edno pole napred levo  i+1,j+1
-                        possibleMoves.append([i, j, i+1, j+1, 100, 100, 100, 100])
-                    if GameCheckers.checkComputerMoves(tabla, i, j, i+1, j-1):            #edno pole napred desno i+1, j-1
-                        possibleMoves.append([i, j, i+1, j-1, 100, 100, 100, 100])
-                    if GameCheckers.checkComputerJump(tabla, i, j, i+2, j+2, i+1, j+1):    #skok edno pole na levo i+2, j+2
-                        possibleMoves.append([i, j, i+2, j+2, i+1, j+1, 100, 100])
-                    if GameCheckers.checkComputerJump(tabla, i, j, i+2, j-2, i+1, j-1):    #skok edno pole na desno i+2, j-2
-                        possibleMoves.append([i, j, i+2, j-2, i+1, j-1, 100, 100])
-                    if GameCheckers.checkComputerDoubleJump(tabla, i, j, i+4, j+4, i+1, j+1, i+3, j+3, i+2, j+2):    #skoka dve polinja na levo  i+4,j+4     4 1 3 2
-                        possibleMoves.append([i, j, i+4, j+4, i+1, j+1, i+3, j+3])
-                    if GameCheckers.checkComputerDoubleJump(tabla, i, j, i+4, j-4, i+1, j-1, i+3, j-3, i+2, j-2):     #skoka dve polinja na desno  i+4,j-4
-                        possibleMoves.append([i, j, i+4, j-4, i+1, j-1, i+3, j-3])
+                    if GameCheckers.checkComputerMoves(tabla, i, j, i + 1, j + 1):  # edno pole napred levo  i+1,j+1
+                        possibleMoves.append([i, j, i + 1, j + 1, 100, 100, 100, 100])
+                    if GameCheckers.checkComputerMoves(tabla, i, j, i + 1, j - 1):  # edno pole napred desno i+1, j-1
+                        possibleMoves.append([i, j, i + 1, j - 1, 100, 100, 100, 100])
+                    if GameCheckers.checkComputerJump(tabla, i, j, i + 2, j + 2, i + 1,
+                                                      j + 1):  # skok edno pole na levo i+2, j+2
+                        possibleMoves.append([i, j, i + 2, j + 2, i + 1, j + 1, 100, 100])
+                    if GameCheckers.checkComputerJump(tabla, i, j, i + 2, j - 2, i + 1,
+                                                      j - 1):  # skok edno pole na desno i+2, j-2
+                        possibleMoves.append([i, j, i + 2, j - 2, i + 1, j - 1, 100, 100])
+                    if GameCheckers.checkComputerDoubleJump(tabla, i, j, i + 4, j + 4, i + 1, j + 1, i + 3, j + 3,
+                                                            i + 2,
+                                                            j + 2):  # skoka dve polinja na levo  i+4,j+4     4 1 3 2
+                        possibleMoves.append([i, j, i + 4, j + 4, i + 1, j + 1, i + 3, j + 3])
+                    if GameCheckers.checkComputerDoubleJump(tabla, i, j, i + 4, j - 4, i + 1, j - 1, i + 3, j - 3,
+                                                            i + 2, j - 2):  # skoka dve polinja na desno  i+4,j-4
+                        possibleMoves.append([i, j, i + 4, j - 4, i + 1, j - 1, i + 3, j - 3])
 
-        #ako se raboti za zolt king e sosema istata logika kako i za zelen king
+        # ako se raboti za zolt king e sosema istata logika kako i za zelen king
         for i in range(8):
             for j in range(8):
-                if check_color(tabla[i][j], i, j) == "yellow": #tabla[i][j].startswith(yellow + "k"):
-                    vleguvaVoStartswith = True
+                if check_color(tabla[i][j], i, j) == "yellow":  # tabla[i][j].startswith(yellow + "k"):
                     if GameCheckers.checkComputerMoves(tabla, i, j, i - 1, j - 1):  # edno pole napred levo
                         possibleMoves.append([i, j, i - 1, j - 1, 100, 100, 100, 100])
                     if GameCheckers.checkComputerMoves(tabla, i, j, i + 1, j - 1):  # edno pole nazad levo
@@ -415,21 +448,29 @@ class GameCheckers:
                         possibleMoves.append([i, j, i - 1, j + 1, 100, 100, 100, 100])
                     if GameCheckers.checkComputerMoves(tabla, i, j, i + 1, j + 1):  # edno pole nazad desno
                         possibleMoves.append([i, j, i + 1, j + 1, 100, 100, 100, 100])
-                    if GameCheckers.checkComputerJump(tabla, i, j, i - 2, j - 2, i - 1, j - 1):  # skoka 1 pole na levo napred
+                    if GameCheckers.checkComputerJump(tabla, i, j, i - 2, j - 2, i - 1,
+                                                      j - 1):  # skoka 1 pole na levo napred
                         possibleMoves.append([i, j, i - 2, j - 2, i - 1, j - 1, 100, 100])
-                    if GameCheckers.checkComputerJump(tabla, i, j, i + 2, j - 2, i + 1,j - 1):  # skoka edno pole levo nazad
+                    if GameCheckers.checkComputerJump(tabla, i, j, i + 2, j - 2, i + 1,
+                                                      j - 1):  # skoka edno pole levo nazad
                         possibleMoves.append([i, j, i + 2, j - 2, i + 1, j - 1, 100, 100])
-                    if GameCheckers.checkComputerJump(tabla, i, j, i - 2, j + 2, i - 1,j + 1):  # skoka edno pole na desno napred
+                    if GameCheckers.checkComputerJump(tabla, i, j, i - 2, j + 2, i - 1,
+                                                      j + 1):  # skoka edno pole na desno napred
                         possibleMoves.append([i, j, i - 2, j + 2, i - 1, j + 1, 100, 100])
-                    if GameCheckers.checkComputerJump(tabla, i, j, i + 2, j + 2, i + 1, j + 1):  # skoka edno pole na desno nazad
+                    if GameCheckers.checkComputerJump(tabla, i, j, i + 2, j + 2, i + 1,
+                                                      j + 1):  # skoka edno pole na desno nazad
                         possibleMoves.append([i, j, i + 2, j + 2, i + 1, j + 1, 100, 100])
-                    if GameCheckers.checkComputerDoubleJump(tabla, i, j, i - 4, j + 4, i - 1, j + 1, i - 3, j + 3, i - 2, j + 2):  # skoka dve polinja na levo napred
+                    if GameCheckers.checkComputerDoubleJump(tabla, i, j, i - 4, j + 4, i - 1, j + 1, i - 3, j + 3,
+                                                            i - 2, j + 2):  # skoka dve polinja na levo napred
                         possibleMoves.append([i, j, i - 4, j + 4, i - 1, j + 1, i - 3, j + 3])
-                    if GameCheckers.checkComputerDoubleJump(tabla, i, j, i + 4, j - 4, i + 1, j - 1, i + 3, j - 3, i + 2,j - 2):  # skoka dve polinja na levo nazad
+                    if GameCheckers.checkComputerDoubleJump(tabla, i, j, i + 4, j - 4, i + 1, j - 1, i + 3, j - 3,
+                                                            i + 2, j - 2):  # skoka dve polinja na levo nazad
                         possibleMoves.append([i, j, i + 4, j - 4, i + 1, j - 1, i + 3, j - 3])
-                    if GameCheckers.checkComputerDoubleJump(tabla, i, j, i - 4, j - 4, i - 1, j - 1, i - 3, j - 3, i - 2, j - 2):  # skoka dve polinja na desno napred
+                    if GameCheckers.checkComputerDoubleJump(tabla, i, j, i - 4, j - 4, i - 1, j - 1, i - 3, j - 3,
+                                                            i - 2, j - 2):  # skoka dve polinja na desno napred
                         possibleMoves.append([i, j, i - 4, j - 4, i - 1, j - 1, i - 3, j - 3])
-                    if GameCheckers.checkComputerDoubleJump(tabla, i, j, i + 4, j + 4, i + 1, j + 1, i + 3, j + 3, i + 2,j + 2):  # skoka dve polinja na desno nazad
+                    if GameCheckers.checkComputerDoubleJump(tabla, i, j, i + 4, j + 4, i + 1, j + 1, i + 3, j + 3,
+                                                            i + 2, j + 2):  # skoka dve polinja na desno nazad
                         possibleMoves.append([i, j, i + 4, j + 4, i + 1, j + 1, i + 3, j + 3])
         return possibleMoves
 
@@ -441,7 +482,7 @@ class GameCheckers:
 
         while True:
             oldPositionCordinates = input("Vnesete na koi koordinati se naoga pionceto: ")
-            if oldPositionCordinates == "":   #Enter, znaci se otkazuva od igrata
+            if oldPositionCordinates == "":  # Enter, znaci se otkazuva od igrata
                 print("Igrata zavrsi!")
                 exit()
             if oldPositionCordinates == "surrender":
@@ -474,7 +515,7 @@ class GameCheckers:
             new_I = int(new_I)
             new_J = int(new_J)
             move = []
-            if abs(old_I - new_I) == 1: #se raboti za obicno pomestuvanje
+            if abs(old_I - new_I) == 1:  # se raboti za obicno pomestuvanje
                 move = [old_I, old_J, new_I, new_J, 100, 100, 100, 100]
                 if move not in mensLegalMoves:
                     print("Ne mozete da napravete takvo dvizenje")
@@ -482,27 +523,29 @@ class GameCheckers:
                 GameCheckers.MakeAMoveForMen(self.matrica, old_I, old_J, new_I, new_J, 100, 100, 100, 100)
                 self.calculatePoints()
                 break
-            elif abs(old_I - new_I) == 2:  #se raboti za preskoknuvanje eden opponent
-                move = [old_I, old_J, new_I, new_J, (old_I + new_I)//2, (old_J + new_J)//2, 100, 100]
+            elif abs(old_I - new_I) == 2:  # se raboti za preskoknuvanje eden opponent
+                move = [old_I, old_J, new_I, new_J, (old_I + new_I) // 2, (old_J + new_J) // 2, 100, 100]
                 if move not in mensLegalMoves:
                     print("Ne mozete da napravete takvo dvizenje")
                     continue
-                GameCheckers.MakeAMoveForMen(self.matrica, old_I, old_J, new_I, new_J, (old_I + new_I)//2, (old_J + new_J)//2, 100, 100)
+                GameCheckers.MakeAMoveForMen(self.matrica, old_I, old_J, new_I, new_J, (old_I + new_I) // 2,
+                                             (old_J + new_J) // 2, 100, 100)
                 self.calculatePoints()
                 break
-            elif abs(old_I - new_I) == 4:  #skoknuvanje na 2 protivnici
+            elif abs(old_I - new_I) == 4:  # skoknuvanje na 2 protivnici
                 move = self.defineAllPosibleOpponents(old_I, old_J, new_I, new_J, mensLegalMoves)
                 if move == None:
                     print("Ne mozete da napravete takvo dvizenje")
                     continue
-                GameCheckers.MakeAMoveForMen(self.matrica, move[0], move[1], move[2], move[3], move[4], move[5], move[6], move[7])
+                GameCheckers.MakeAMoveForMen(self.matrica, move[0], move[1], move[2], move[3], move[4], move[5],
+                                             move[6], move[7])
                 self.calculatePoints()
                 break
             else:
                 print("Nemozete da napravite takvo dvizenje")
                 continue
 
-    def defineAllPosibleOpponents(self, old_I,old_J, new_I, new_J, mensLegalMoves):
+    def defineAllPosibleOpponents(self, old_I, old_J, new_I, new_J, mensLegalMoves):
         move1_base = [old_I, old_J, new_I, new_J, old_I + 1, old_J + 1]
         for i in [[old_I + 3, old_J + 3], [old_I + 3, old_J - 3], [old_I - 3, old_J + 3], [old_I - 3, old_J - 3]]:
             move = move1_base + i
@@ -529,71 +572,64 @@ class GameCheckers:
 
         return None
 
-
-
-
     def calculatePoints(self):
-        self.player_pieces=0
+        self.player_pieces = 0
         self.compPieces = 0
         for i in range(8):
             for j in range(8):
                 if clean_cell_value(self.matrica[i][j])[0] == "#" and clean_cell_value(self.matrica[i][j])[1] == 'm':
-                    self.player_pieces+=1
-                if check_color(self.matrica[i][j], i, j) == "green": #self.matrica[i][j].startswith(green + 'k'):
-                    vleguvaVoStartswith = True
-                    self.player_pieces+=1
-                if clean_cell_value(self.matrica[i][j])[0] == "c" and clean_cell_value(self.matrica[i][j])[1] == "o":  #proveruvame za sekoj slucaj po dva karakteri
-                    self.compPieces+=1
-                if check_color(self.matrica[i][j], i, j) == "yellow": #self.matrica[i][j].startswith(yellow + 'k'):
-                    vleguvaVoStartswith = True
-                    self.compPieces+=1
+                    self.player_pieces += 1
+                if check_color(self.matrica[i][j], i, j) == "green":  # self.matrica[i][j].startswith(green + 'k'):
+                    self.player_pieces += 1
+                if clean_cell_value(self.matrica[i][j])[0] == "c" and clean_cell_value(self.matrica[i][j])[
+                    1] == "o":  # proveruvame za sekoj slucaj po dva karakteri
+                    self.compPieces += 1
+                if check_color(self.matrica[i][j], i, j) == "yellow":  # self.matrica[i][j].startswith(yellow + 'k'):
+                    self.compPieces += 1
         self.computerScore = 12 - self.player_pieces
         self.playerScore = 12 - self.compPieces
 
-
-
-
-    #ovaa funkcija navistina pravi pridvizuvanje zatoa sto direktno ja menuva self.matrica
-    #najgolem del od drugite funkcii pravat deepcopy odnosno samo isprobuvaat na kopija sto bi bilo koga bilo koe covece pravi poteg
+    # ovaa funkcija navistina pravi pridvizuvanje zatoa sto direktno ja menuva self.matrica
+    # najgolem del od drugite funkcii pravat deepcopy odnosno samo isprobuvaat na kopija sto bi bilo koga bilo koe covece pravi poteg
     @staticmethod
     def MakeAMoveForMen(board, old_I, old_J, new_I, new_J, opponent1_I, opponent1_J, opponent2_I, opponent2_J):
         string = "king"
-        if not check_color(board[old_I][old_J], old_I, old_J) == "green": #board[old_I][old_J].startswith(green + "k"):    #dokolku seuste nema stanato king
-            vleguvaVoStartswith = True
+        if not check_color(board[old_I][old_J], old_I,
+                           old_J) == "green":  # board[old_I][old_J].startswith(green + "k"):    #dokolku seuste nema stanato king
             if new_I != 0:  # queenRow = 0 za #men
                 string = "#men"
 
-        if opponent1_I == 100 and opponent1_J==100 and opponent2_I==100 and opponent2_J == 100:   #ako se raboti samo za prosto dvizenje edno pole napred
-            board[old_I][old_J] = "----" +  to_superscript(old_I) + to_superscript(old_J)
+        if opponent1_I == 100 and opponent1_J == 100 and opponent2_I == 100 and opponent2_J == 100:  # ako se raboti samo za prosto dvizenje edno pole napred
+            board[old_I][old_J] = "----" + to_superscript(old_I) + to_superscript(old_J)
             board[new_I][new_J] = green + string + to_superscript(new_I) + to_superscript(new_J) + ansi_reset
-        elif opponent2_I==100 and opponent2_J == 100:   #skoka preku edno
-            board[opponent1_I][opponent1_J] =  "----" +  to_superscript(opponent1_I) + to_superscript(opponent1_J)
-            board[old_I][old_J] = "----" +  to_superscript(old_I) + to_superscript(old_J)
+        elif opponent2_I == 100 and opponent2_J == 100:  # skoka preku edno
+            board[opponent1_I][opponent1_J] = "----" + to_superscript(opponent1_I) + to_superscript(opponent1_J)
+            board[old_I][old_J] = "----" + to_superscript(old_I) + to_superscript(old_J)
             board[new_I][new_J] = green + string + to_superscript(new_I) + to_superscript(new_J) + ansi_reset
-        else:    #dvojno skokanje
-            board[opponent1_I][opponent1_J] = "----" +  to_superscript(opponent1_I) + to_superscript(opponent1_J)
-            board[opponent2_I][opponent2_J] =  "----" +  to_superscript(opponent2_I) + to_superscript(opponent2_J)
-            board[old_I][old_J] = "----" +  to_superscript(old_I) + to_superscript(old_J)
+        else:  # dvojno skokanje
+            board[opponent1_I][opponent1_J] = "----" + to_superscript(opponent1_I) + to_superscript(opponent1_J)
+            board[opponent2_I][opponent2_J] = "----" + to_superscript(opponent2_I) + to_superscript(opponent2_J)
+            board[old_I][old_J] = "----" + to_superscript(old_I) + to_superscript(old_J)
             board[new_I][new_J] = green + string + to_superscript(new_I) + to_superscript(new_J) + ansi_reset
 
     @staticmethod
     def MakeAMoveForComputer(board, old_I, old_J, new_I, new_J, opponent1_I, opponent1_J, opponent2_I, opponent2_J):
         string = "king"
-        if not check_color(board[old_I][old_J], old_I, old_J) == "yellow": #board[old_I][old_J].startswith(yellow + "k"):
-            vleguvaVoStartswith = True
-            if new_I != 7:   #sedmata redica e king redica za comp
+        if not check_color(board[old_I][old_J], old_I,
+                           old_J) == "yellow":  # board[old_I][old_J].startswith(yellow + "k"):
+            if new_I != 7:  # sedmata redica e king redica za comp
                 string = "comp"
-        if opponent1_I == 100 and opponent1_J==100 and opponent2_I==100 and opponent2_J == 100:   #ako se raboti samo za prosto dvizenje edno pole napred
-            board[old_I][old_J] = "----" +  to_superscript(old_I) + to_superscript(old_J)
+        if opponent1_I == 100 and opponent1_J == 100 and opponent2_I == 100 and opponent2_J == 100:  # ako se raboti samo za prosto dvizenje edno pole napred
+            board[old_I][old_J] = "----" + to_superscript(old_I) + to_superscript(old_J)
             board[new_I][new_J] = yellow + string + to_superscript(new_I) + to_superscript(new_J) + ansi_reset
         elif opponent2_I == 100 and opponent2_J == 100:  # skoka preku edno
-            board[opponent1_I][opponent1_J] =  "----" +  to_superscript(opponent1_I) + to_superscript(opponent1_J)
-            board[old_I][old_J] = "----" +  to_superscript(old_I) + to_superscript(old_J)
+            board[opponent1_I][opponent1_J] = "----" + to_superscript(opponent1_I) + to_superscript(opponent1_J)
+            board[old_I][old_J] = "----" + to_superscript(old_I) + to_superscript(old_J)
             board[new_I][new_J] = yellow + string + to_superscript(new_I) + to_superscript(new_J) + ansi_reset
         else:
             board[opponent1_I][opponent1_J] = "----" + to_superscript(opponent1_I) + to_superscript(opponent1_J)
             board[opponent2_I][opponent2_J] = "----" + to_superscript(opponent2_I) + to_superscript(opponent2_J)
-            board[old_I][old_J] = "----" +  to_superscript(old_I) + to_superscript(old_J)
+            board[old_I][old_J] = "----" + to_superscript(old_I) + to_superscript(old_J)
             board[new_I][new_J] = yellow + string + to_superscript(new_I) + to_superscript(new_J) + ansi_reset
 
     def artificialIntelligence(self):
@@ -607,7 +643,7 @@ class GameCheckers:
 
         for i in range(len(first_computer_moves)):
             child = first_computer_moves[i]
-            value = GameCheckers.minimax(child.get_board(), 1, -math.inf, math.inf, False)
+            value = GameCheckers.minimax(child.get_board(), 2, -math.inf, math.inf, False)
             dict[value] = child
 
         if len(dict.keys()) == 0:
@@ -618,11 +654,9 @@ class GameCheckers:
         self.matrica = new_board
         self.calculatePoints()
 
-
     @staticmethod
     def minimax(board, depth, alpha, beta, maximizing_player):
         if depth == 0:
-            #print("vleguvaVoStartswith = " , vleguvaVoStartswith)
             return GameCheckers.calculate_heuristics(board)
         current_state = NewGameState(deepcopy(board))
         if maximizing_player is True:
@@ -646,11 +680,11 @@ class GameCheckers:
             current_state.set_value(min_eval)
             return min_eval
 
-    #Covekot ja bara najgolemata mozna vrednost
-    #Kompjuterot ja bara najmalata mozna vrednost i go izbira potegot sto ke ja minimizira dobivkata na igracot
-    #Za da go adaptirame minmax algoritmot na coveckiot igrac,
-    #heuristickata funkcija treba da go proceni tekovnioto pozicioniranje na tablata na nacin
-    #na koj gi favorizira potezite na covekot
+    # Covekot ja bara najgolemata mozna vrednost
+    # Kompjuterot ja bara najmalata mozna vrednost i go izbira potegot sto ke ja minimizira dobivkata na igracot
+    # Za da go adaptirame minmax algoritmot na coveckiot igrac,
+    # heuristickata funkcija treba da go proceni tekovnioto pozicioniranje na tablata na nacin
+    # na koj gi favorizira potezite na covekot
     @staticmethod
     def calculate_heuristics(board):
 
@@ -676,24 +710,29 @@ class GameCheckers:
                         result -= 7
                     if i + 1 > 7 or j - 1 < 0 or i - 1 < 0 or j + 1 > 7:
                         continue
-                    if (isTheSame(board[i + 1][j - 1], "#men", i+1, j-1) or board[i+1][j-1].startswith(green + "k")) and isTheSame(board[i - 1][
-                        j + 1], "----", i-1, j+1):
+                    if (isTheSame(board[i + 1][j - 1], "#men", i + 1, j - 1) or board[i + 1][j - 1].startswith(
+                            green + "k")) and isTheSame(board[i - 1][
+                                                            j + 1], "----", i - 1, j + 1):
                         result += 3
                     if (isTheSame(board[i + 1][j + 1], "#men", i + 1, j + 1) or board[i + 1][j + 1].startswith(
                             green + "k")) and isTheSame(board[i - 1][j - 1], "----", i - 1, j - 1):
                         result += 3
-                    if board[i - 1][j - 1].startswith(green + "k") and  isTheSame(board[i + 1][j + 1], "----", i+1, j+1): #board[i + 1][j + 1] == "---":
+                    if board[i - 1][j - 1].startswith(green + "k") and isTheSame(board[i + 1][j + 1], "----", i + 1,
+                                                                                 j + 1):  # board[i + 1][j + 1] == "---":
                         result += 3
 
-                    if board[i - 1][j + 1].startswith(green + "k") and isTheSame(board[i + 1][j - 1], "----", i+1, j-1):
+                    if board[i - 1][j + 1].startswith(green + "k") and isTheSame(board[i + 1][j - 1], "----", i + 1,
+                                                                                 j - 1):
                         result += 3
-                    if i + 2 > 7 or i - 2 < 0 or j-2 < 0:
+                    if i + 2 > 7 or i - 2 < 0 or j - 2 < 0:
                         continue
-                    if (isTheSame(board[i + 1][j - 1], "#men", i+1, j-1) or board[i + 1][j - 1].startswith(green + "k")) and isTheSame(board[i + 2][j - 2], "----", i+2, j-2):
+                    if (isTheSame(board[i + 1][j - 1], "#men", i + 1, j - 1) or board[i + 1][j - 1].startswith(
+                            green + "k")) and isTheSame(board[i + 2][j - 2], "----", i + 2, j - 2):
                         result -= 6
                     if i + 2 > 7 or j + 2 > 7:
                         continue
-                    if (isTheSame(board[i + 1][j + 1], "#men", i+1, j+1) or board[i + 1][j + 1].startswith(green + "k")) and isTheSame(board[i + 2][j + 2],"----", i+2, j+2):
+                    if (isTheSame(board[i + 1][j + 1], "#men", i + 1, j + 1) or board[i + 1][j + 1].startswith(
+                            green + "k")) and isTheSame(board[i + 2][j + 2], "----", i + 2, j + 2):
                         result -= 6
 
                 elif isTheSame(board[i][j], "#men", i, j) or board[i][j].startswith(green + "k"):
